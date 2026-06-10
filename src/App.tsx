@@ -8,6 +8,7 @@ import Step3Sede from "./components/steps/Step3Sede";
 import Step4Documents from "./components/steps/Step4Documents";
 import Step5Payment from "./components/steps/Step5Payment";
 import SuccessScreen from "./components/SuccessScreen";
+import { submitEnrollment } from "./lib/enrollmentService";
 import type { Step, EnrollmentForm } from "./types/enrollment";
 
 const INITIAL_FORM: EnrollmentForm = {
@@ -77,18 +78,40 @@ export default function App() {
   const [currentStep, setCurrentStep] = useState<Step>(1);
   const [form, setForm] = useState<EnrollmentForm>(INITIAL_FORM);
   const [errors, setErrors] = useState<string[]>([]);
+  const [submissionError, setSubmissionError] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const goNext = () => {
-    const errs = validateStep(currentStep, form);
-    if (errs.length > 0) { setErrors(errs); return; }
-    setErrors([]);
-    if (currentStep === 5) {
-      setIsLoading(true);
-      setTimeout(() => { setIsLoading(false); setSubmitted(true); }, 2200);
+  const handleSubmit = async () => {
+    setSubmissionError("");
+    setIsLoading(true);
+
+    const response = await submitEnrollment(form);
+
+    setIsLoading(false);
+
+    if (!response.success) {
+      setSubmissionError(response.error ?? "Error al procesar la matrícula. Intenta nuevamente.");
       return;
     }
+
+    setSubmitted(true);
+  };
+
+  const goNext = async () => {
+    const errs = validateStep(currentStep, form);
+    if (errs.length > 0) {
+      setErrors(errs);
+      return;
+    }
+
+    setErrors([]);
+
+    if (currentStep === 5) {
+      await handleSubmit();
+      return;
+    }
+
     setCurrentStep((prev) => Math.min(prev + 1, 5) as Step);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -201,17 +224,23 @@ export default function App() {
         </div>
 
         {/* Errors */}
-        {errors.length > 0 && (
+        {(errors.length > 0 || submissionError) && (
           <div className="bg-red-50 border border-red-200 rounded-2xl p-4">
-            <p className="text-red-700 font-semibold text-sm mb-2">⚠️ Por favor completa los siguientes campos:</p>
-            <ul className="space-y-1">
-              {errors.map((e, i) => (
-                <li key={i} className="text-red-600 text-sm flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" />
-                  {e}
-                </li>
-              ))}
-            </ul>
+            {errors.length > 0 ? (
+              <>
+                <p className="text-red-700 font-semibold text-sm mb-2">⚠️ Por favor completa los siguientes campos:</p>
+                <ul className="space-y-1">
+                  {errors.map((e, i) => (
+                    <li key={i} className="text-red-600 text-sm flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" />
+                      {e}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            ) : (
+              <p className="text-red-700 font-semibold text-sm">{submissionError}</p>
+            )}
           </div>
         )}
 
