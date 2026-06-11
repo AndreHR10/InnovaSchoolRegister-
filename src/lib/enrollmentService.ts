@@ -13,6 +13,39 @@ const DOCUMENT_LABELS: Record<DocumentKey, string> = {
   vaccinationCard: "Tarjeta de Vacunación",
 };
 
+// 🌟 Diccionarios de mapeo para convertir strings del frontend a los IDs de Supabase
+const mapeoSedes: Record<string, number> = {
+  "los-olivos": 1,
+  "los_olivos": 1,
+  "los olivos": 1,
+  "san-miguel": 2,
+  "san_miguel": 2,
+  "san miguel": 2,
+  "surco": 3,
+  "ate": 4,
+  "san-juan-de-lurigancho": 5,
+  "san_juan_de_lurigancho": 5,
+  "s.j.l.": 5,
+  "callao": 6,
+  "comas": 7,
+  "villa-el-salvador": 8,
+  "villa_el_salvador": 8,
+  "v.e.s.": 8,
+  "chorrillos": 9,
+  "brena": 10,
+  "breña": 10
+};
+
+const mapeoTurnos: Record<string, number> = {
+  "manana": 1,
+  "mañana": 1,
+  "turno-manana": 1,
+  "turno_manana": 1,
+  "tarde": 2,
+  "turno-tarde": 2,
+  "turno_tarde": 2
+};
+
 const generateMatriculaCode = () =>
   `INN-${new Date().getFullYear()}-${Math.floor(Math.random() * 900000 + 10000)}`;
 
@@ -61,11 +94,19 @@ export async function submitEnrollment(form: EnrollmentForm) {
   const selectedSede = SEDES.find((sede) => sede.id === form.sede.sede);
   const montoPagado = selectedSede?.matrícula ?? 0;
 
+  // 🌟 Normalización de los valores a minúsculas para buscar su ID correspondiente
+  const sedeKey = String(form.sede.sede).toLowerCase().trim();
+  const turnoKey = String(form.sede.turn).toLowerCase().trim();
+
+  // 🌟 Mapeo seguro con un "fallback" por si el valor no coincide (asigna ID 1 por defecto)
+  const idSedeNumerico = mapeoSedes[sedeKey] || 1;
+  const idTurnoNumerico = mapeoTurnos[turnoKey] || 1;
+
   const matriculaPayload = {
     codigo_matricula,
     dni_estudiante: form.student.dni,
-    id_sede: form.sede.sede,
-    id_turno: form.sede.turn,
+    id_sede: idSedeNumerico,   // ✅ Ahora envía un Integer correcto
+    id_turno: idTurnoNumerico, // ✅ Ahora envía un Integer correcto
     estado_matricula: "Pendiente de Validación",
   };
 
