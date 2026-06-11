@@ -29,10 +29,6 @@ jobs:
         env:
           VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          EXT_PUBLIC_SUPABASE_URL: ${{ secrets.EXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
-          EXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.EXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
         run: |
           echo "La URL guardada empieza con: ${VITE_SUPABASE_URL:0:12}..."
           npm run build
